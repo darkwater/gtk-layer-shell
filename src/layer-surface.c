@@ -185,6 +185,7 @@ layer_surface_map (CustomShellSurface *super, struct wl_surface *wl_surface)
     zwlr_layer_surface_v1_set_exclusive_zone (self->layer_surface, self->exclusive_zone);
     layer_surface_send_set_anchor (self);
     layer_surface_send_set_margin (self);
+    zwlr_layer_surface_v1_set_exclusive_edge (self->layer_surface, self->exclusive_edge);
     if (self->cached_layer_size.width >= 0 && self->cached_layer_size.height >= 0) {
         zwlr_layer_surface_v1_set_size (self->layer_surface,
                                         self->cached_layer_size.width,
@@ -316,6 +317,7 @@ layer_surface_new (GtkWindow *gtk_window)
     self->monitor = NULL;
     self->layer = GTK_LAYER_SHELL_LAYER_TOP;
     self->name_space = NULL;
+    self->exclusive_edge = 0;
     self->exclusive_zone = 0;
     self->auto_exclusive_zone = FALSE;
     self->keyboard_mode = GTK_LAYER_SHELL_KEYBOARD_MODE_NONE;
@@ -403,6 +405,18 @@ layer_surface_set_margin (LayerSurface *self, GtkLayerShellEdge edge, int margin
         layer_surface_send_set_margin (self);
         layer_surface_update_auto_exclusive_zone (self);
         custom_shell_surface_needs_commit ((CustomShellSurface *)self);
+    }
+}
+
+void
+layer_surface_set_exclusive_edge (LayerSurface *self, int exclusive_edge)
+{
+    if (self->exclusive_edge != exclusive_edge) {
+        self->exclusive_edge = exclusive_edge;
+        if (self->layer_surface) {
+            zwlr_layer_surface_v1_set_exclusive_edge (self->layer_surface, self->exclusive_edge);
+            custom_shell_surface_needs_commit ((CustomShellSurface *)self);
+        }
     }
 }
 
